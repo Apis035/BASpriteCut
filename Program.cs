@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Drawing;
+using Rotate = System.Drawing.RotateFlipType;
 
 namespace BlueArchiveSpriteCut
 {
@@ -15,18 +16,10 @@ namespace BlueArchiveSpriteCut
             SpineDir   = CurrentDir + "/spine/",
             ResultDir  = CurrentDir + "/Character/";
 
-        enum Angle
-        {
-            Angle0,
-            Angle90,
-            Angle180,
-            Angle270
-        }
-
         struct Atlas
         {
             public string  PartName;
-            public Angle   Rotate;
+            public Rotate  Rotate;
             public Vector2 Position,
                            Size,
                            Origin, /* not needed */
@@ -69,7 +62,7 @@ namespace BlueArchiveSpriteCut
                 {
                     Atlas atlas;
                     atlas.PartName = lines[i++];
-                    atlas.Rotate   = GetRotateMode(lines[i++].Substring(9));
+                    atlas.Rotate   = GetRotateMode(lines[i++]);
                     atlas.Position = ReadVector2(lines[i++], "xy");
                     atlas.Size     = ReadVector2(lines[i++], "size");
                     atlas.Origin   = ReadVector2(lines[i++], "orig");
@@ -88,7 +81,7 @@ namespace BlueArchiveSpriteCut
                         (int)atlas.Size.X,
                         (int)atlas.Size.Y);
 
-                    if (atlas.Rotate != Angle.Angle0)
+                    if (atlas.Rotate != Rotate.RotateNoneFlipNone)
                     {
                         cropArea.Width  = (int)atlas.Size.Y;
                         cropArea.Height = (int)atlas.Size.X;
@@ -101,12 +94,7 @@ namespace BlueArchiveSpriteCut
                         g.DrawImage(bitmap, -cropArea.X, -cropArea.Y);
 
                     // Rotate image
-                    switch (atlas.Rotate)
-                    {
-                        case Angle.Angle90:  canvas.RotateFlip(RotateFlipType.Rotate90FlipNone);  break;
-                        case Angle.Angle180: canvas.RotateFlip(RotateFlipType.Rotate180FlipNone); break;
-                        case Angle.Angle270: canvas.RotateFlip(RotateFlipType.Rotate270FlipNone); break;
-                    };
+                    canvas.RotateFlip(atlas.Rotate);
 
                     // Save result
                     canvas.Save($"{ResultDir + charName}/{atlas.PartName}.png");
@@ -125,12 +113,12 @@ namespace BlueArchiveSpriteCut
             return str.First().ToString().ToUpper() + str.Substring(1);
         }
 
-        static Angle GetRotateMode(string str)
+        static Rotate GetRotateMode(string str)
         {
-            return str.Equals("true") ? Angle.Angle90
-                 : str.Equals("180")  ? Angle.Angle180
-                 : str.Equals("270")  ? Angle.Angle270
-                 : Angle.Angle0;
+            return str.Contains("true") ? Rotate.Rotate90FlipNone
+                 : str.Contains("180")  ? Rotate.Rotate180FlipNone
+                 : str.Contains("270")  ? Rotate.Rotate270FlipNone
+                                        : Rotate.RotateNoneFlipNone;
         }
 
         static Vector2 ReadVector2(string str, string keyname)
