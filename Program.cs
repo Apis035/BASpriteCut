@@ -81,7 +81,8 @@ namespace BlueArchiveSpriteCut
                         (int)atlas.Size.X,
                         (int)atlas.Size.Y);
 
-                    if (atlas.Rotate != Rotate.RotateNoneFlipNone)
+                    if (atlas.Rotate == Rotate.Rotate90FlipNone ||
+                        atlas.Rotate == Rotate.Rotate270FlipNone)
                     {
                         cropArea.Width  = (int)atlas.Size.Y;
                         cropArea.Height = (int)atlas.Size.X;
